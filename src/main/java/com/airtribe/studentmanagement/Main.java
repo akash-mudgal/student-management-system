@@ -186,8 +186,9 @@ public class Main {
         StudentFactory.StudentType type = typeChoice.equals("2") ? 
             StudentFactory.StudentType.GRADUATE : StudentFactory.StudentType.UNDERGRADUATE;
         
-        System.out.print("Student ID: ");
-        String studentId = scanner.nextLine().trim();
+        // Auto-generate student ID
+        String studentId = studentService.generateStudentId();
+        System.out.println("Generated Student ID: " + studentId);
         
         System.out.print("First Name: ");
         String firstName = scanner.nextLine().trim();
@@ -415,8 +416,9 @@ public class Main {
     private static void addCourse() throws InvalidDataException {
         System.out.println("\n--- Add New Course ---");
         
-        System.out.print("Course ID: ");
-        String courseId = scanner.nextLine().trim();
+        // Auto-generate course ID
+        String courseId = courseService.generateCourseId();
+        System.out.println("Generated Course ID: " + courseId);
         
         System.out.print("Course Code (e.g., CS101): ");
         String courseCode = scanner.nextLine().trim().toUpperCase();

@@ -8,7 +8,6 @@ import com.airtribe.studentmanagement.pattern.ConfigurationManager;
 import com.airtribe.studentmanagement.util.InputValidator;
 
 import java.io.*;
-import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,11 +23,13 @@ public class StudentService {
     
     private Map<String, Student> students;
     private String dataFilePath;
+    private int studentIdCounter;
     
     public StudentService() {
         this.students = new HashMap<>();
         ConfigurationManager config = ConfigurationManager.getInstance();
         this.dataFilePath = config.getDataDirectory() + "/students.dat";
+        this.studentIdCounter = 1;
         
         // Ensure data directory exists
         createDataDirectoryIfNeeded();
@@ -42,6 +43,17 @@ public class StudentService {
         if (!dataDir.exists()) {
             dataDir.mkdirs();
         }
+    }
+    
+    /**
+     * Generate unique student ID
+     */
+    public String generateStudentId() {
+        String studentId;
+        do {
+            studentId = String.format("STU%05d", studentIdCounter++);
+        } while (students.containsKey(studentId));
+        return studentId;
     }
     
     /**
@@ -234,10 +246,26 @@ public class StudentService {
             for (Student student : loadedStudents) {
                 students.put(student.getStudentId(), student);
             }
+            // Update counter to avoid ID conflicts
+            updateStudentIdCounter();
             System.out.println("✓ Loaded " + students.size() + " students from file");
         } catch (IOException | ClassNotFoundException e) {
             System.err.println("✗ Error loading students data: " + e.getMessage());
         }
+    }
+    
+    /**
+     * Update student ID counter based on existing IDs
+     */
+    private void updateStudentIdCounter() {
+        int maxNumber = students.keySet().stream()
+            .filter(id -> id.startsWith("STU"))
+            .map(id -> id.substring(3))
+            .filter(num -> num.matches("\\d+"))
+            .mapToInt(Integer::parseInt)
+            .max()
+            .orElse(0);
+        studentIdCounter = maxNumber + 1;
     }
     
     /**

@@ -17,11 +17,13 @@ public class CourseService {
     
     private Map<String, Course> courses;
     private String dataFilePath;
+    private int courseIdCounter;
     
     public CourseService() {
         this.courses = new HashMap<>();
         ConfigurationManager config = ConfigurationManager.getInstance();
         this.dataFilePath = config.getDataDirectory() + "/courses.dat";
+        this.courseIdCounter = 1;
         
         // Ensure data directory exists
         createDataDirectoryIfNeeded();
@@ -32,6 +34,17 @@ public class CourseService {
         if (!dataDir.exists()) {
             dataDir.mkdirs();
         }
+    }
+    
+    /**
+     * Generate unique course ID
+     */
+    public String generateCourseId() {
+        String courseId;
+        do {
+            courseId = String.format("CRS%05d", courseIdCounter++);
+        } while (courses.containsKey(courseId));
+        return courseId;
     }
     
     /**
@@ -197,10 +210,26 @@ public class CourseService {
             for (Course course : loadedCourses) {
                 courses.put(course.getCourseId(), course);
             }
+            // Update counter to avoid ID conflicts
+            updateCourseIdCounter();
             System.out.println("✓ Loaded " + courses.size() + " courses from file");
         } catch (IOException | ClassNotFoundException e) {
             System.err.println("✗ Error loading courses data: " + e.getMessage());
         }
+    }
+    
+    /**
+     * Update course ID counter based on existing IDs
+     */
+    private void updateCourseIdCounter() {
+        int maxNumber = courses.keySet().stream()
+            .filter(id -> id.startsWith("CRS"))
+            .map(id -> id.substring(3))
+            .filter(num -> num.matches("\\d+"))
+            .mapToInt(Integer::parseInt)
+            .max()
+            .orElse(0);
+        courseIdCounter = maxNumber + 1;
     }
     
     /**
